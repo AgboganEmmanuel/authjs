@@ -19,8 +19,6 @@ export const { handlers, auth } = NextAuth({
     providers: [GithubProvider,
         //setup de credentials
         Credentials({
-            // You can specify which fields should be submitted, by adding keys to the `credentials` object.
-            // e.g. domain, username, password, 2FA token, etc.
             credentials: {
               email: {},
               password: {},
@@ -32,10 +30,6 @@ export const { handlers, auth } = NextAuth({
               if (!credentials?.email || typeof credentials.email !== 'string') {
                 throw new Error("Email invalide")
               }
-              if (!credentials?.password || typeof credentials.password !== 'string') {
-                throw new Error("Mot de passe invalide")
-            }
-              const pwHash = await hashPassword(credentials.password)
        
               // logic to verify if the user exists
               user = await getUserFromDb(credentials.email, pwHash)
