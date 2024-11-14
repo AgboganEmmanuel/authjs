@@ -51,7 +51,7 @@ export function SignUp() {
       }
       //Affichage d'un pop-up
       handleShowAlert('success')
-      await new Promise(resolve => setTimeout(resolve, 5200)); // Attendre 6 secondes
+      await new Promise(resolve => setTimeout(resolve, 5200)); // Attendre 5.2 secondes
       // Redirection vers la page de connexion
       router.push('/auth/login');
     } catch (error) {
