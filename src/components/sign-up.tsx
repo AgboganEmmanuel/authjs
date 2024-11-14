@@ -3,10 +3,18 @@
 import { FormEvent, useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { AlertPopup } from '@/components/alerts';
 
 export function SignUp() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<'success' | 'error' | 'warning' | 'info'>('info');
+
+  const handleShowAlert = (type: 'success' | 'error' | 'warning' | 'info') => {
+    setAlertType(type);
+    setShowAlert(true);
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -41,7 +49,9 @@ export function SignUp() {
         const errorText = await response.text();
         throw new Error(`Erreur lors de la création du compte : ${errorText}`);
       }
-
+      //Affichage d'un pop-up
+      handleShowAlert('success')
+      await new Promise(resolve => setTimeout(resolve, 5200)); // Attendre 6 secondes
       // Redirection vers la page de connexion
       router.push('/auth/login');
     } catch (error) {
@@ -50,7 +60,8 @@ export function SignUp() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <div>
+      <form onSubmit={handleSubmit}>
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700">
           Full Name
@@ -98,5 +109,17 @@ export function SignUp() {
         </button>
       </div>
     </form>
+    <div>
+    {showAlert && (
+          <AlertPopup
+            message={`Utilisateur créé avec succès`}
+            type={alertType}
+            onClose={() => setShowAlert(false)}
+          />
+        )}
+    </div>
+    </div>
+    
+    
   );
 }

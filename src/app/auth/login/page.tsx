@@ -1,6 +1,8 @@
 import { auth } from "@/lib/auth";
 import Image from "next/image";
 import { LoginButton, LoginGit, LogoutButton, SignUpLink } from "@/app/AuthButton";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default async function Home() {
   //const session = await auth()

@@ -1,10 +1,10 @@
 import { auth } from "@/lib/auth";
 import Image from "next/image";
 import { LoginButton, LoginGit, LoginLink, LogoutButton } from "@/app/AuthButton";
-import { SignUp } from "@/app/components/ui/sign-up"; 
+import { SignUp } from "@/components/sign-up"; 
 
 export default async function Home() {
-
+  
   return (
     <div className="flex h-screen">
  
