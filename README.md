@@ -106,7 +106,6 @@ npm run start # Démarre le serveur de production
 npm run lint # Vérifie le code avec ESLint
 ```
 
-
 ## Déploiement
 
 Pour déployer sur Vercel :
@@ -120,4 +119,18 @@ Pour déployer sur Vercel :
 
 Pour toute question ou problème, veuillez ouvrir une issue sur GitHub.
 
+## Technologies Utilisées
+
+- **Frontend** : Next.js 14, React, Tailwind CSS
+- **Backend** : Next.js API Routes
+- **Base de données** : PostgreSQL
+- **ORM** : Prisma
+- **Authentification** : NextAuth.js v5
+- **Validation** : Zod
+- **Formulaires** : React Hook Form
+- **Styles** : Tailwind CSS, Shadcn UI
+
+Ce projet peut servir de point de départ pour toute application nécessitant un système d'authentification robuste et moderne.
+
+## Contributeurs:
 Emmanuel Makafui Agbogan, Novembre 2024
