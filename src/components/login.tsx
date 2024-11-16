@@ -1,80 +1,121 @@
 "use client";
 
-import { FormEvent, useState } from 'react';
+import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema } from "@/lib/zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { z } from "zod";
 
 export function LogIn() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
-    const formData = new FormData(event.currentTarget);
-    const data = {
-      email: formData.get('email') as string,
-      password: formData.get('password') as string,
-    };
-
-    if (!data.email || !data.password) {
-      setError("Email and password are required");
-      return;
-    }
-
-    const result = await signIn('credentials', {
-        redirect: false,
+  const onSubmit = async (data: z.infer<typeof loginSchema>) => {
+    setError(null);
+  
+    try {
+      // Vérifier si l'utilisateur existe
+      const checkUser = await fetch(`/api/user/check?email=${data.email}`);
+      const userData = await checkUser.json();
+  
+      if (!userData.exists) {
+        setError("Aucun utilisateur trouvé avec cet email");
+        return;
+      }
+  
+      // Vérifier le mot de passe
+      const checkPassword = await fetch('/api/user/verify-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password
+        }),
+      });
+      const passwordData = await checkPassword.json();
+  
+      if (!passwordData.isValid) {
+        setError("Mot de passe incorrect");
+        return;
+      }
+  
+      // Tenter la connexion avec NextAuth
+      const result = await signIn('credentials', {
         email: data.email,
         password: data.password,
-        callbackUrl: '/' // URL de redirection après connexion réussie
+        redirect: false
       });
   
-      if (result?.error) {
-        setError(result.error);
-      } else if (result?.url) {
-        setError(null);
-        await router.push(result.url); // Utiliser l'URL retournée par signIn
-        router.refresh();
+      if (!result?.ok) {
+        setError("Une erreur est survenue lors de la connexion");
+        return;
       }
+  
+      router.push('/');
+      router.refresh();
+  
+    } catch (error) {
+      console.error('Erreur de connexion:', error);
+      setError("Une erreur est survenue lors de la connexion");
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-          Email
-        </label>
-        <input
-          type="text"
-          id="email"
-          name="email"
-          className="mt-1 p-2 w-full border rounded-md focus:border-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 transition-colors duration-300"
-        />
-      </div>
-      <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-          Password
-        </label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          className="mt-1 p-2 w-full border rounded-md focus:border-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 transition-colors duration-300"
-        />
-      </div>
-      {error && (
-        <div className="text-red-600">
-          {error}
-        </div>
-      )}
-      <div>
-        <button
-          type="submit"
-          className="w-full bg-black text-white p-2 rounded-md hover:bg-gray-800 focus:outline-none focus:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-colors durée-300"
-        >
-          Login
-        </button>
-      </div>
-    </form>
+    <div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input {...field} type="email" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                  <Input {...field} type="password" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {error && (
+            <div className="text-red-600">
+              {error}
+            </div>
+          )}
+
+          <Button type="submit" className="w-full">Login</Button>
+        </form>
+      </Form>
+    </div>
   );
 }

@@ -1,12 +1,15 @@
 "use client"
 import { LogoutButton } from "@/app/AuthButton"
+import { useSession } from "next-auth/react"
 
 export const SideNav = () => {
+  const { data: session } = useSession()
+  const firstLetter = session?.user?.name?.charAt(0) || '?'
     return <div className="flex h-screen w-16 flex-col justify-between border-e bg-white">
     <div>
       <div className="inline-flex size-16 items-center justify-center">
         <span className="grid size-10 place-content-center rounded-lg bg-gray-100 text-xs text-gray-600">
-        L
+        {firstLetter}
         </span>
       </div>
   

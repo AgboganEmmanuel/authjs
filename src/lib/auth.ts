@@ -3,19 +3,13 @@ import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "./prisma"
 import GithubProvider from "next-auth/providers/github"
 import GoogleProvider from "next-auth/providers/google"
-import Credentials from "next-auth/providers/credentials"
+import CredentialsProvider from "next-auth/providers/credentials"
 import { comparePassword } from "@/utils/password"
+import { loginSchema } from "@/lib/zod"
+import { z } from "zod"
+import type { NextAuthConfig } from "next-auth"
 
-async function getUserFromDb(email: string, passwordHash: string) {
-    return await prisma.user.findFirst({
-      where: {
-        email: email,
-        hashedPassword: passwordHash
-      }
-    });
-  }
-
-export const { handlers, auth } = NextAuth({
+export const authConfig: NextAuthConfig = {
     adapter: PrismaAdapter(prisma),
     providers: [
       GithubProvider({
@@ -25,55 +19,77 @@ export const { handlers, auth } = NextAuth({
       GoogleProvider({
         clientId: process.env.GOOGLE_CLIENT_ID as string,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-    }),
-        //setup de credentials
-        Credentials({
-          credentials: {
-              email: { label: "Email", type: "email" },
-              password: { label: "Mot de passe", type: "password" }
-          },
-          async authorize(credentials) {
-              if (!credentials?.email || !credentials?.password) {
-                  throw new Error('Email et mot de passe requis');
-              }
-
-              const user = await prisma.user.findUnique({
-                  where: { email: credentials.email as string }
-              });
-
-              if (!user || !user.hashedPassword) {
-                  throw new Error('Aucun utilisateur trouvé avec cet email');
-              }
-
-              const isPasswordValid = await comparePassword(
-                  credentials.password as string,
-                  user.hashedPassword
-              );
-
-              if (!isPasswordValid) {
-                  throw new Error('Mot de passe incorrect');
-              }
-
-              return {
-                  id: user.id,
-                  email: user.email,
-                  name: user.name,
-                  image: user.image
-              };
+      }),
+      CredentialsProvider({
+        id: "credentials",
+        name: "Credentials",
+        credentials: {
+          email: { label: "Email", type: "email" },
+          password: { label: "Password", type: "password" }
+        },
+        async authorize(credentials) {
+          if (!credentials?.email || !credentials?.password) {
+            return null;
           }
+
+          try {
+            const validatedCredentials = loginSchema.parse({
+              email: credentials.email,
+              password: credentials.password
+            });
+
+            const user = await prisma.user.findUnique({
+              where: { email: validatedCredentials.email }
+            });
+
+            if (!user?.hashedPassword) {
+              return null;
+            }
+
+            const isPasswordValid = await comparePassword(
+              validatedCredentials.password,
+              user.hashedPassword
+            );
+
+            if (!isPasswordValid) {
+              return null;
+            }
+
+            return {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              image: user.image
+            };
+          } catch (error) {
+            return null;
+          }
+        }
       })
-  ],
-  pages: {
-    signIn: '/auth/login',
-},
-callbacks: {
-    async signIn({ user, account, profile }) {
-        console.log('Tentative de connexion:', { user, account, profile });
-        return true;
-    }
-},
-session:{
-  strategy: "jwt",
-},
-debug: true
-})
+    ],
+    pages: {
+      signIn: '/auth/login',
+      error: '/auth/error',
+    },
+    callbacks: {
+      async jwt({ token, user }) {
+        if (user) {
+          token.id = user.id;
+        }
+        return token;
+      },
+      async session({ session, token }) {
+        if (session.user) {
+          session.user.id = token.id as string;
+        }
+        return session;
+      }
+    },
+    session: {
+      strategy: "jwt"
+    },
+    secret: process.env.NEXTAUTH_SECRET,
+    debug: process.env.NODE_ENV === 'development',
+}
+
+export const { handlers, auth, signIn, signOut } = NextAuth(authConfig)
