@@ -1,36 +1,123 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Projet Next.js avec Authentication
 
-## Getting Started
+Ce projet utilise Next.js 14, NextAuth.js v5, Prisma, et PostgreSQL pour l'authentification.
 
-First, run the development server:
+## Prérequis
+
+- Node.js 18.17 ou plus récent
+- PostgreSQL installé et en cours d'exécution
+- npm ou pnpm
+
+## Installation
+
+1. Cloner le repository
+bash
+git clone [URL_DU_REPO]
+cd [NOM_DU_PROJET]
+
+2. Installer les dépendances
+
+```bash
+npm install
+ou
+pnpm install
+```
+
+3. Configurer les variables d'environnement
+Créer un fichier `.env` à la racine du projet :
+
+env
+Database
+DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/DB_NAME"
+Next Auth
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="votre_secret_très_long_et_aléatoire"
+Providers
+GITHUB_ID="votre_github_id"
+GITHUB_SECRET="votre_github_secret"
+GOOGLE_CLIENT_ID="votre_google_client_id"
+GOOGLE_CLIENT_SECRET="votre_google_client_secret"
+
+
+4. Initialiser et configurer la base de données
+
+```bash
+Installer Prisma CLI globalement si nécessaire
+npm install -g prisma
+Initialiser Prisma avec PostgreSQL
+npx prisma generate
+Appliquer les migrations
+npx prisma migrate dev
+Vérifier la base de données (optionnel)
+npx prisma studio
+```
+
+5. Lancer le serveur de développement
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
+ou
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Le site sera accessible à l'adresse [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Configuration des Providers OAuth
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### GitHub
+1. Aller sur [GitHub Developer Settings](https://github.com/settings/developers)
+2. Créer une nouvelle OAuth App
+3. Homepage URL: http://localhost:3000
+4. Callback URL: http://localhost:3000/api/auth/callback/github
 
-## Learn More
+### Google
+1. Aller sur [Google Cloud Console](https://console.cloud.google.com/)
+2. Créer un nouveau projet
+3. Activer OAuth 2.0
+4. Configurer l'écran de consentement
+5. Ajouter les URIs de redirection: http://localhost:3000/api/auth/callback/google
 
-To learn more about Next.js, take a look at the following resources:
+## Structure du Projet
+src/
+├── app/
+│ ├── api/
+│ │ ├── auth/
+│ │ └── user/
+│ └── auth/
+├── components/
+├── lib/
+└── utils/
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Fonctionnalités
 
-## Deploy on Vercel
+- Authentification avec email/mot de passe
+- Authentification OAuth (GitHub, Google)
+- Validation des formulaires avec Zod
+- Interface utilisateur avec Tailwind CSS
+- Base de données PostgreSQL avec Prisma
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Scripts Disponibles
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run dev # Démarre le serveur de développement
+npm run build # Construit l'application pour la production
+npm run start # Démarre le serveur de production
+npm run lint # Vérifie le code avec ESLint
+```
+
+
+## Déploiement
+
+Pour déployer sur Vercel :
+
+1. Créer un compte sur [Vercel](https://vercel.com)
+2. Connecter votre repository GitHub
+3. Configurer les variables d'environnement
+4. Déployer
+
+## Support
+
+Pour toute question ou problème, veuillez ouvrir une issue sur GitHub.
+
+Emmanuel Makafui Agbogan, Novembre 2024
