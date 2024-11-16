@@ -12,8 +12,8 @@ Ce projet utilise Next.js 14, NextAuth.js v5, Prisma, et PostgreSQL pour l'authe
 
 1. Cloner le repository
 bash
-git clone [URL_DU_REPO]
-cd [NOM_DU_PROJET]
+git clone https://github.com/AgboganEmmanuel/authjs.git
+cd authjs
 
 2. Installer les dépendances
 
